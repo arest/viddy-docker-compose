@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:carbon
 
 RUN rm -rf /var/lib/apt/lists/*
 RUN apt-get update && \
