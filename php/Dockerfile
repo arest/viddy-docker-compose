@@ -33,6 +33,9 @@ RUN docker-php-ext-install zip bz2 mbstring pdo pdo_pgsql pcntl soap && \
     docker-php-ext-install gd && \
     docker-php-ext-enable mcrypt
 
+COPY --from=composer:1.10.16 /usr/bin/composer /usr/local/bin/composer
+RUN php /usr/local/bin/composer global require hirak/prestissimo --no-plugins --no-scripts
+
 WORKDIR /var/www/html
 
 COPY ./www.conf /usr/local/etc/php-fpm.d/www.conf
