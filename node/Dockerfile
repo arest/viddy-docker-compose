@@ -1,0 +1,13 @@
+FROM node:12-alpine
+
+RUN apk add git zip ruby-dev build-base ruby-rdoc && \
+    npm set progress=false && \
+    npm config set depth 0
+
+WORKDIR /var/www/html
+
+RUN gem install compass
+
+RUN apk update && apk upgrade && apk add bash
+
+CMD ["npm install && bower install && node_modules/grunt/bin/grunt"]
