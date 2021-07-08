@@ -14,7 +14,7 @@ services:
       context: ./aws-cli
     env_file: .env
     volumes:
-      - ${HOME}/.aws:/root/.aws:ro
+      - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
     tty: true
 
   nginx:
@@ -34,7 +34,8 @@ services:
       - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - cachedata:${APP_CODE_PATH_CONTAINER}/var
-      - ${HOME}/.aws/credentials:/var/www/.aws/credentials:ro
+      - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
+      - ${AWS_CREDENTIALS_HOME}/.aws:/var/www/.aws:ro
       # - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/site.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
@@ -77,11 +78,12 @@ services:
       - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/tests:${APP_CODE_PATH_CONTAINER}/tests${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/phpunit.xml:${APP_CODE_PATH_CONTAINER}/phpunit.xml:ro
-      - ${APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json:ro
+      - ${APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json
       - ${APP_PATH}/composer.lock:${APP_CODE_PATH_CONTAINER}/composer.lock
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - cachedata:${APP_CODE_PATH_CONTAINER}/var
-      - ${HOME}/.aws/credentials:/var/www/.aws/credentials:ro
+      - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
+      - ${AWS_CREDENTIALS_HOME}/.aws:/var/www/.aws:ro
       - ./php/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
       - ./php/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
       #- ./php/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini:ro
@@ -194,8 +196,8 @@ services:
       COMPOSER_MEMORY_LIMIT: 1
     volumes:
       - ${APP_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json:ro
-      - ${APP_PATH}/composer.lock:${APP_CODE_PATH_CONTAINER}/composer.lock
+      - ${APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json:delegated
+      - ${APP_PATH}/composer.lock:${APP_CODE_PATH_CONTAINER}/composer.lock:delegated
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - "$SSH_AUTH_SOCK:/ssh-auth.sock"
       - /etc/passwd:/etc/passwd:ro
