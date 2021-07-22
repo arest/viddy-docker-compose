@@ -32,6 +32,7 @@ services:
       - ${APP_PATH}/bin:${APP_CODE_PATH_CONTAINER}/bin${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
+      - ${APP_PATH}/tmp:${APP_CODE_PATH_CONTAINER}/tmp${APP_CODE_CONTAINER_FLAG}
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - cachedata:${APP_CODE_PATH_CONTAINER}/var
       - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
@@ -76,6 +77,7 @@ services:
       - ${APP_PATH}/bin:${APP_CODE_PATH_CONTAINER}/bin${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
+      - ${APP_PATH}/tmp:${APP_CODE_PATH_CONTAINER}/tmp${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/tests:${APP_CODE_PATH_CONTAINER}/tests${APP_CODE_CONTAINER_FLAG}
       - ${APP_PATH}/phpunit.xml:${APP_CODE_PATH_CONTAINER}/phpunit.xml:ro
       - ${APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json
@@ -92,6 +94,35 @@ services:
       - "9000"
     networks:
       - backend
+
+  rendering:
+    container_name: rendering
+    build:
+      context: ${APP_PATH}
+    volumes:
+      - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
+      - ${AWS_CREDENTIALS_HOME}/.aws:${WORKER_CODE_PATH_CONTAINER}/.aws:ro
+      - ${APP_PATH}/tmp/images:${WORKER_CODE_PATH_CONTAINER}/tmp/images${APP_CODE_CONTAINER_FLAG}
+      - ${APP_PATH}/app/Resources/templates:${WORKER_CODE_PATH_CONTAINER}/app/Resources/templates${APP_CODE_CONTAINER_FLAG}
+    env_file: .env
+    depends_on:
+      - postgresql
+    command: ['/usr/bin/env', 'bash', './bin/process_render_queue']
+    networks:
+      - backend
+      - frontend
+
+  keyframe-rendering:
+    container_name: keyframe-rendering
+    build:
+      context: ${APP_PATH}
+    volumes:
+      - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
+      - ${AWS_CREDENTIALS_HOME}/.aws:${WORKER_CODE_PATH_CONTAINER}/.aws:ro
+      - ${APP_PATH}/tmp/images:${WORKER_CODE_PATH_CONTAINER}/tmp/images${APP_CODE_CONTAINER_FLAG}
+      - ${APP_PATH}/app/Resources/templates:${WORKER_CODE_PATH_CONTAINER}/app/Resources/templates${APP_CODE_CONTAINER_FLAG}
+    env_file: .env
+    command: ['/usr/bin/env', 'bash', './bin/process_keyframe_preview_queue']
 
   phpunit:
     build:
