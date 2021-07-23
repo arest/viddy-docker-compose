@@ -17,6 +17,23 @@ services:
       - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
     tty: true
 
+  nextjs:
+    build:
+      context: ./nextjs
+    ports:
+      - "3000:3000"
+    container_name: nextjs-ui
+    restart: always
+    working_dir: ${APP_CODE_PATH_CONTAINER}
+    stdin_open: true
+    tty: true
+    volumes:
+       - ${FRONTEND_APP_PATH}:${APP_CODE_PATH_CONTAINER}
+       - node_modules:${APP_CODE_PATH_CONTAINER}/node_modules
+    networks:
+      - frontend
+      - backend
+
   nginx:
     container_name: nginx
     image: nginx:1.17
@@ -27,12 +44,12 @@ services:
     links:
       - php
     volumes:
-      - ${APP_PATH}/app:${APP_CODE_PATH_CONTAINER}/app${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/assets:${APP_CODE_PATH_CONTAINER}/assets${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/bin:${APP_CODE_PATH_CONTAINER}/bin${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/tmp:${APP_CODE_PATH_CONTAINER}/tmp${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/app:${APP_CODE_PATH_CONTAINER}/app${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/assets:${APP_CODE_PATH_CONTAINER}/assets${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/bin:${APP_CODE_PATH_CONTAINER}/bin${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/tmp:${APP_CODE_PATH_CONTAINER}/tmp${APP_CODE_CONTAINER_FLAG}
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - cachedata:${APP_CODE_PATH_CONTAINER}/var
       - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
@@ -53,11 +70,11 @@ services:
     env_file: .env
     working_dir: ${APP_CODE_PATH_CONTAINER}
     volumes:
-      - ${APP_PATH}/assets:${APP_CODE_PATH_CONTAINER}/assets${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/package.json:${APP_CODE_PATH_CONTAINER}/package.json:ro
-      - ${APP_PATH}/bower.json:${APP_CODE_PATH_CONTAINER}/bower.json:ro
-      - ${APP_PATH}/Gruntfile.js:${APP_CODE_PATH_CONTAINER}/Gruntfile.js:ro
+      - ${BACKEND_APP_PATH}/assets:${APP_CODE_PATH_CONTAINER}/assets${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/package.json:${APP_CODE_PATH_CONTAINER}/package.json:ro
+      - ${BACKEND_APP_PATH}/bower.json:${APP_CODE_PATH_CONTAINER}/bower.json:ro
+      - ${BACKEND_APP_PATH}/Gruntfile.js:${APP_CODE_PATH_CONTAINER}/Gruntfile.js:ro
       - nodedata:${APP_CODE_PATH_CONTAINER}/node_modules
       - bowerdata:${APP_CODE_PATH_CONTAINER}/bower_components
     command: "node_modules/grunt/bin/grunt watch"
@@ -72,16 +89,16 @@ services:
     env_file: .env
     working_dir: ${APP_CODE_PATH_CONTAINER}
     volumes:
-      - ${APP_PATH}/app:${APP_CODE_PATH_CONTAINER}/app${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/assets:${APP_CODE_PATH_CONTAINER}/assets${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/bin:${APP_CODE_PATH_CONTAINER}/bin${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/tmp:${APP_CODE_PATH_CONTAINER}/tmp${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/tests:${APP_CODE_PATH_CONTAINER}/tests${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/phpunit.xml:${APP_CODE_PATH_CONTAINER}/phpunit.xml:ro
-      - ${APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json
-      - ${APP_PATH}/composer.lock:${APP_CODE_PATH_CONTAINER}/composer.lock
+      - ${BACKEND_APP_PATH}/app:${APP_CODE_PATH_CONTAINER}/app${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/assets:${APP_CODE_PATH_CONTAINER}/assets${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/bin:${APP_CODE_PATH_CONTAINER}/bin${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/tmp:${APP_CODE_PATH_CONTAINER}/tmp${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/tests:${APP_CODE_PATH_CONTAINER}/tests${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/phpunit.xml:${APP_CODE_PATH_CONTAINER}/phpunit.xml:ro
+      - ${BACKEND_APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json
+      - ${BACKEND_APP_PATH}/composer.lock:${APP_CODE_PATH_CONTAINER}/composer.lock
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - cachedata:${APP_CODE_PATH_CONTAINER}/var
       - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
@@ -98,12 +115,12 @@ services:
   rendering:
     container_name: rendering
     build:
-      context: ${APP_PATH}
+      context: ${BACKEND_APP_PATH}
     volumes:
       - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
       - ${AWS_CREDENTIALS_HOME}/.aws:${WORKER_CODE_PATH_CONTAINER}/.aws:ro
-      - ${APP_PATH}/tmp/images:${WORKER_CODE_PATH_CONTAINER}/tmp/images${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/app/Resources/templates:${WORKER_CODE_PATH_CONTAINER}/app/Resources/templates${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/tmp/images:${WORKER_CODE_PATH_CONTAINER}/tmp/images${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/app/Resources/templates:${WORKER_CODE_PATH_CONTAINER}/app/Resources/templates${APP_CODE_CONTAINER_FLAG}
     env_file: .env
     depends_on:
       - postgresql
@@ -115,12 +132,12 @@ services:
   keyframe-rendering:
     container_name: keyframe-rendering
     build:
-      context: ${APP_PATH}
+      context: ${BACKEND_APP_PATH}
     volumes:
       - ${AWS_CREDENTIALS_HOME}/.aws:/root/.aws:ro
       - ${AWS_CREDENTIALS_HOME}/.aws:${WORKER_CODE_PATH_CONTAINER}/.aws:ro
-      - ${APP_PATH}/tmp/images:${WORKER_CODE_PATH_CONTAINER}/tmp/images${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/app/Resources/templates:${WORKER_CODE_PATH_CONTAINER}/app/Resources/templates${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/tmp/images:${WORKER_CODE_PATH_CONTAINER}/tmp/images${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/app/Resources/templates:${WORKER_CODE_PATH_CONTAINER}/app/Resources/templates${APP_CODE_CONTAINER_FLAG}
     env_file: .env
     command: ['/usr/bin/env', 'bash', './bin/process_keyframe_preview_queue']
 
@@ -130,11 +147,11 @@ services:
     env_file: .env
     working_dir: ${APP_CODE_PATH_CONTAINER}
     volumes:
-      - ${APP_PATH}/app:${APP_CODE_PATH_CONTAINER}/app${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/tests:${APP_CODE_PATH_CONTAINER}/tests${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/phpunit.xml:${APP_CODE_PATH_CONTAINER}/phpunit.xml:ro
+      - ${BACKEND_APP_PATH}/app:${APP_CODE_PATH_CONTAINER}/app${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/src:${APP_CODE_PATH_CONTAINER}/src${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/web:${APP_CODE_PATH_CONTAINER}/web${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/tests:${APP_CODE_PATH_CONTAINER}/tests${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/phpunit.xml:${APP_CODE_PATH_CONTAINER}/phpunit.xml:ro
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - cachedata:${APP_CODE_PATH_CONTAINER}/var
     networks:
@@ -226,9 +243,9 @@ services:
       SSH_AUTH_SOCK: /ssh-auth.sock
       COMPOSER_MEMORY_LIMIT: 1
     volumes:
-      - ${APP_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ${APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json:delegated
-      - ${APP_PATH}/composer.lock:${APP_CODE_PATH_CONTAINER}/composer.lock:delegated
+      - ${BACKEND_APP_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${BACKEND_APP_PATH}/composer.json:${APP_CODE_PATH_CONTAINER}/composer.json:delegated
+      - ${BACKEND_APP_PATH}/composer.lock:${APP_CODE_PATH_CONTAINER}/composer.lock:delegated
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - "$SSH_AUTH_SOCK:/ssh-auth.sock"
       - /etc/passwd:/etc/passwd:ro
@@ -283,6 +300,8 @@ services:
       - backend
 
 volumes:
+  node_modules:
+    driver: ${VOLUMES_DRIVER}    
   cachedata:
     driver: ${VOLUMES_DRIVER}
   vendordata:
