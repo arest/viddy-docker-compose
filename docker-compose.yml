@@ -1,11 +1,5 @@
 version: "3.8"
 
-networks:
-  frontend:
-    driver: ${NETWORKS_DRIVER}
-  backend:
-    driver: ${NETWORKS_DRIVER}
-
 services:
 
 ### AWS EB-CLI ################################################
@@ -30,12 +24,9 @@ services:
     volumes:
        - ${FRONTEND_APP_PATH}:${APP_CODE_PATH_CONTAINER}
        - node_modules:${APP_CODE_PATH_CONTAINER}/node_modules
-    networks:
-      - frontend
-      - backend
 
   nginx:
-    container_name: nginx
+    container_name: apidev.viddyoze.com
     image: nginx:1.17
     restart: always
     env_file: .env
@@ -59,9 +50,6 @@ services:
       - ./nginx/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
     ports:
       - "80:80"
-    networks:
-      - frontend
-      - backend
 
   assets:
     build:
@@ -109,8 +97,6 @@ services:
       #- ./php/conf.d/error_reporting.ini:/usr/local/etc/php/conf.d/error_reporting.ini:ro
     expose:
       - "9000"
-    networks:
-      - backend
 
   rendering:
     container_name: rendering
@@ -122,12 +108,11 @@ services:
       - ${BACKEND_APP_PATH}/tmp/images:${WORKER_CODE_PATH_CONTAINER}/tmp/images${APP_CODE_CONTAINER_FLAG}
       - ${BACKEND_APP_PATH}/app/Resources/templates:${WORKER_CODE_PATH_CONTAINER}/app/Resources/templates${APP_CODE_CONTAINER_FLAG}
     env_file: .env
+    environment:
+      DOCKER_DEFAULT_PLATFORM: ${DOCKER_DEFAULT_PLATFORM}
     depends_on:
       - postgresql
     command: ['/usr/bin/env', 'bash', './bin/process_render_queue']
-    networks:
-      - backend
-      - frontend
 
   keyframe-rendering:
     container_name: keyframe-rendering
@@ -154,9 +139,6 @@ services:
       - ${BACKEND_APP_PATH}/phpunit.xml:${APP_CODE_PATH_CONTAINER}/phpunit.xml:ro
       - vendordata:${APP_CODE_PATH_CONTAINER}/vendor
       - cachedata:${APP_CODE_PATH_CONTAINER}/var
-    networks:
-      - backend
-      - frontend
     tty: true
     stdin_open: true
 
@@ -170,9 +152,6 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - ${DATA_PATH_HOST}/postgresql:/var/lib/postgresql/data
-    networks:
-      - frontend
-      - backend
 
   ### pgAdmin ##############################################
   pgadmin:
@@ -186,18 +165,12 @@ services:
       - ${DATA_PATH_HOST}/pgadmin:/var/lib/pgadmin
     depends_on:
       - postgresql
-    networks:
-      - frontend
-      - backend
 
   mailhog:
     image: mailhog/mailhog
     ports:
         - "1025:1025"
         - "8025:8025"
-    networks:
-      - frontend
-      - backend
 
 ### SQS #############################################
   sqs:
@@ -209,8 +182,6 @@ services:
     hostname: viddyoze-sqs
     volumes:
       - ${DATA_PATH_HOST}/sqs:/opt/custom
-    networks:
-      - backend
 
 ### Minio ################################################
   minio:
@@ -223,17 +194,12 @@ services:
     environment:
       - MINIO_ACCESS_KEY=access
       - MINIO_SECRET_KEY=secretkey
-    networks:
-      - frontend
-      - backend
 
   redis:
     image: redis:5.0.7
     hostname: redis
     volumes:
       - "${DATA_PATH_HOST}/redis:/data"
-    networks:
-      - backend
 
   composer:
     image: composer:1.10
@@ -251,8 +217,6 @@ services:
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
     command: composer install --no-cache --ignore-platform-reqs --no-scripts
-    networks:
-      - backend
     tty: true
     stdin_open: true
 
@@ -265,8 +229,6 @@ services:
         - "9300:9300"
     volumes:
       - "elasticdata:/usr/share/elasticsearch/data"
-    networks:
-      - backend
 
 ## Certbot #########################################
   certbot:
@@ -278,16 +240,12 @@ services:
     environment:
       - CN="apidev.viddyoze.com"
       - EMAIL="fake.email@gmail.com"
-    networks:
-      - frontend
 
 ## SWAGGER EDITOR ############################################
   swagger-editor:
     build: ./swagger-editor
     ports:
       - ${SWAGGER_EDITOR_PORT}:8080
-    networks:
-      - backend
 
 ### SWAGGER UI ################################################
   swagger-ui:
@@ -296,12 +254,10 @@ services:
       - API_URL=${SWAGGER_API_URL}
     ports:
       - ${SWAGGER_UI_PORT}:8080
-    networks:
-      - backend
 
 volumes:
   node_modules:
-    driver: ${VOLUMES_DRIVER}    
+    driver: ${VOLUMES_DRIVER}
   cachedata:
     driver: ${VOLUMES_DRIVER}
   vendordata:
@@ -314,3 +270,7 @@ volumes:
     driver: ${VOLUMES_DRIVER}
   bowerdata:
     driver: ${VOLUMES_DRIVER}
+
+networks:
+  default:
+    name: viddyoze

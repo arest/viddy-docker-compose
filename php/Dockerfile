@@ -33,6 +33,15 @@ RUN docker-php-ext-install zip bz2 mbstring pdo pdo_pgsql pcntl soap && \
     docker-php-ext-install gd && \
     docker-php-ext-enable mcrypt
 
+ARG DOCKER_ARM
+RUN if [ ${DOCKER_ARM} = "true" ] ; then \
+    wget -nv -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.stretch_arm64.deb && \
+        apt-get -qy install /tmp/wkhtmltox.deb ; \
+else \
+    wget -nv -O /tmp/wkhtmltox.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.stretch_amd64.deb && \
+        apt-get -qy install /tmp/wkhtmltox.deb ; \
+fi
+
 COPY --from=composer:1.10.16 /usr/bin/composer /usr/local/bin/composer
 
 RUN php /usr/local/bin/composer global require hirak/prestissimo --no-plugins --no-scripts
