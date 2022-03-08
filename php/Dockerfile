@@ -23,7 +23,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     cron \
     git \
     unzip \
-    procps
+    procps \
+    wget
 
 RUN pecl channel-update pecl.php.net \
     && pecl install apcu mcrypt-1.0.1
