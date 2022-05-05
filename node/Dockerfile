@@ -10,4 +10,6 @@ RUN gem install compass
 
 RUN apk update && apk upgrade && apk add bash
 
+RUN npm install -g bower
+
 CMD ["npm install && bower install && node_modules/grunt/bin/grunt"]
