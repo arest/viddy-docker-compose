@@ -6,9 +6,15 @@ RUN apk add git zip ruby-dev build-base ruby-rdoc && \
 
 WORKDIR /var/www/html
 
+COPY package*.json ./
+
+COPY bower*.json ./
+
 RUN gem install compass
 
 RUN apk update && apk upgrade && apk add bash
+
+RUN npm install
 
 RUN npm install -g bower
 
